@@ -30,25 +30,22 @@ namespace EZCode.ProductService.Products
         [Authorize(ProductServicePermissions.Products.Delete)]
         public async Task DeleteAsync(Guid id)
         {
-            await _productRepository.DeleteAsync(x=> x.Id == id);
+            await _productRepository.DeleteAsync(x => x.Id == id);
         }
 
         public async Task<ProductDto> GetAsync(Guid id)
         {
-            var product = await _productRepository.GetAsync(x=>x.Id == id);
+            var product = await _productRepository.GetAsync(x => x.Id == id);
             return ObjectMapper.Map<Product, ProductDto>(product);
         }
 
         public async Task<PagedResultDto<ProductDto>> GetListAsync(GetProductsInput request)
         {
-            var queryable = await _productRepository.GetQueryableAsync();
-            queryable
-                .WhereIf(!string.IsNullOrEmpty(request.Name), x => x.Name.Contains(request.Name))
-                .WhereIf(!string.IsNullOrEmpty(request.Description), x => x.Name.Contains(request.Description))
-                .WhereIf(request.PriceMin.HasValue, x => x.Price >= request.PriceMin.Value)
-                .WhereIf(request.PriceMax.HasValue, x => x.Price <= request.PriceMax.Value);
+            var db = await _productRepository.GetQueryableAsync();
+            var queryable =
+                 db.WhereIf(!string.IsNullOrEmpty(request.Filter), x => x.Name.Contains(request.Filter));
 
-            var data = await AsyncExecuter.ToListAsync(queryable);  
+            var data = await AsyncExecuter.ToListAsync(queryable);
 
             var res = new PagedResultDto<ProductDto>
             {
@@ -62,7 +59,7 @@ namespace EZCode.ProductService.Products
         [Authorize(ProductServicePermissions.Products.Update)]
         public async Task<ProductDto> UpdateAsync(Guid id, ProductUpdateDto input)
         {
-            var product = await _productRepository.GetAsync(x=>x.Id == id);
+            var product = await _productRepository.GetAsync(x => x.Id == id);
             var productUpdate = ObjectMapper.Map(input, product);
             productUpdate = await _productRepository.UpdateAsync(productUpdate);
             return ObjectMapper.Map<Product, ProductDto>(productUpdate);

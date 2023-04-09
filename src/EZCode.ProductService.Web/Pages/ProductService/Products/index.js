@@ -12,16 +12,22 @@ var editModal = new abp.ModalManager({
 });
 
 $(function () {
-    //SetDatatable();
     var dataTable = SetGrid();
 
     $("#btnCreate").click(function (e) {
         e.preventDefault();
         createModal.open();
     });
+
+    $("#btnSearch").click(function (e) {
+        e.preventDefault();
+        dataTable.ajax.reload();
+    });
+
     createModal.onResult(function () {
         dataTable.ajax.reload();
     });
+
     editModal.onResult(function () {
         dataTable.ajax.reload();
     });
@@ -34,7 +40,7 @@ function SetGrid() {
             paging: true,
             order: [[1, "asc"]],
             searching: false,
-            ajax: abp.libs.datatables.createAjax(productService.getList),
+            ajax: abp.libs.datatables.createAjax(productService.getList, getFilter),
             columnDefs: [
                 {
                     title: l('Actions'),
@@ -43,7 +49,7 @@ function SetGrid() {
                             [
                                 {
                                     text: l('Edit'),
-                                    visible: abp.auth.isGranted('ProductService.Products.Edit'),
+                                    visible: abp.auth.isGranted('ProductService.Products.Update'),
                                     action: function (data) {
                                         editModal.open(
                                             {
@@ -86,7 +92,6 @@ function SetGrid() {
     );
 }
 
-
 function Edit(data) {
     console.log(data.record.id);
 }
@@ -97,10 +102,6 @@ function Delete(data) {
 
 function getFilter() {
     return {
-        filterText: "",
-        name: "",
-        description: "",
-        priceMin: null,
-        priceMax: null
+        filter: $("#FilterText").val(),
     };
 };
